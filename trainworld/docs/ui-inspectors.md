@@ -1222,3 +1222,19 @@ balloon-loop operation and is not needed for an ordinary short-turn service.
 The existing group diagram opens with every stop named. Full-length, short-turn and skip-stop
 services remain ordinary lines in one group, each with its existing stop/pass marks and schedule.
 Each group member also offers the shortcut; its bullet opens that service's inspector.
+
+### Four-track operation (Japan rebalance)
+
+The line panel and each group member offer **Four-track operation** when the existing twin planner
+can find the adjacent pair, or while the saved two-pair switch is on. It needs no `?pairs` flag.
+Use **Move to adjacent pair, both directions** on the rapid service to separate it from the local
+service. The move uses `twin_plan`'s platforms and stored route, preserves the group, fleet,
+headway and stopping pattern, and sets ordinary two-way operation. A pooled service first takes
+back its whole fleet and removes its hidden twin in the same checked edit and undo. Failed moves
+leave everything in place. The existing **Run trains on two pairs of tracks** switch still pools
+one service across both pairs and still explains missing platforms or an unbuilt adjacent route.
+
+The four tracks remain the existing two bidirectional pairs. This is an operating shortcut for
+local/rapid separation and common settings up and down, not a new physical four-lane order,
+crossover designer or saved corridor object. Build both pairs' platforms using the existing quad
+track tools. Partial corridors with no complete adjacent route cannot use the shortcut.

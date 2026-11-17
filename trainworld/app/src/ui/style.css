@@ -1981,3 +1981,5 @@ html.ui-hidden .ui-hint.on { display: block; }
 .short-turn .callout label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
 .short-turn select { min-width: 0; max-width: 100%; font: inherit; color: var(--text); background: var(--bg); }
 .group-services > div { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.quad-service { margin: 8px 0; }
+.quad-service fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }

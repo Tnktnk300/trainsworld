@@ -16,7 +16,9 @@ export function ShortTurnCreator({ l, st }: { l: LineInput; st?: LineStats }) {
   const inFlight = useRef(false);
   const signature = l.stops.join(",");
   useLayoutEffect(() => { setIndex(""); setFailed(false); }, [l.num, signature]);
-  if (!st || st.bus || st.loop || l.stops.length < 3 || st.status === "broken") return null;
+  if (!st || st.bus) return null;
+  const canCreate = !st.loop && l.stops.length >= 3 && st.status !== "broken";
+  if (!canCreate && !l.group) return null;
   const names = world.value ? stationNames(world.value) : new Map<string, string>();
   const create = async () => {
     if (inFlight.current || !index) return;
@@ -38,14 +40,14 @@ export function ShortTurnCreator({ l, st }: { l: LineInput; st?: LineStats }) {
     finally { setBusy(false); inFlight.current = false; }
   };
   return <div class="short-turn">
-    <button class={"btn text" + (open ? " on" : "")} aria-expanded={open} disabled={busy} onClick={() => setOpen(!open)}>{t("shortTurn.open")}</button>
-    {l.group && <button class="btn text" onClick={() => { groupAllStops.value = true; selection.value = { kind: "group", group: l.group! }; }}>{t("shortTurn.group")}</button>}
-    {open && <div class="callout">
-      <label>{t("shortTurn.station")} <select value={index} disabled={busy} onChange={e => { setIndex(e.currentTarget.value); setFailed(false); }}>
+    {canCreate && <button class={"btn text" + (open ? " on" : "")} aria-expanded={open} disabled={busy} onClick={() => setOpen(!open)}>{t("shortTurn.open")}</button>}
+    {!!l.group && <button class="btn text" onClick={() => { groupAllStops.value = true; selection.value = { kind: "group", group: l.group! }; }}>{t("shortTurn.group")}</button>}
+    {open && canCreate && <div class="callout">
+      <label>{t("shortTurn.station")} <select aria-label={t("shortTurn.station")} value={index} disabled={busy} onChange={e => { setIndex(e.currentTarget.value); setFailed(false); }}>
         <option value="">{t("shortTurn.choose")}</option>
         {l.stops.slice(1, -1).map((s, i) => <option value={String(i + 1)}>{names.get(s) ?? s}</option>)}
       </select></label>
-      <label>{t("shortTurn.keep")} <select value={keepStart ? "start" : "end"} disabled={busy} onChange={e => setKeepStart(e.currentTarget.value === "start")}>
+      <label>{t("shortTurn.keep")} <select aria-label={t("shortTurn.keep")} value={keepStart ? "start" : "end"} disabled={busy} onChange={e => setKeepStart(e.currentTarget.value === "start")}>
         <option value="start">{names.get(l.stops[0]) ?? l.stops[0]}</option>
         <option value="end">{names.get(l.stops.at(-1)!) ?? l.stops.at(-1)}</option>
       </select></label>

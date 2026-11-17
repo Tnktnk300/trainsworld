@@ -40,6 +40,7 @@ import { drawnReversed } from "../../game/northUp";
 import { turnedLine, type TurnRow } from "../../game/turnedLine";
 import { MareyButton } from "./MareyChart";
 import { ScheduleButton } from "./SchedulePanel";
+import { QuadLineControls } from "./QuadLineControls";
 import { ShortTurnCreator } from "./ShortTurnCreator";
 import { LineProfile } from "./LineProfile";
 import { LineTopSpeed } from "./LineTopSpeed";
@@ -352,38 +353,7 @@ function PlainStops({ looks, colour, loop, ends, order, onDblClick, children }: 
   );
 }
 
-/** The two-pairs switch is hidden for players (v0.3.3, Anita 2026-11-12) unless the address has `?pairs`; a
- * line saved as running on both pairs keeps doing so. */
-const PAIRS_SHOWN = typeof location !== "undefined" && new URLSearchParams(location.search).has("pairs");
-
-/** Train length (T-733): 1 car up to what the line's shortest platform fits. At the cap the line
- * stores 0, the most that fits, so it follows the platforms as a new line does. */
-/** T-3333: the switch that runs the line's trains on both pairs of quad track, shown where it can or
- * while it is on, and why it runs on one pair while the switch is on and it cannot. */
-function LinePairs({ l, st }: { l: LineInput; st: LineStats }) {
-  const w = world.value;
-  if (!PAIRS_SHOWN) return null;
-  const ans = useClockQuery({ what: "linePairs", line: l.num }, [l.num, w?.version], (d) => ({ ok: d[0] === 1, why: d.length >= 3 ? [d[1], d[2]] as const : null }));
-  if (!w || (!st.pairs && !ans?.ok)) return null;
-  const name = (k: number) => stationNames(w).get(l.stops[k]) ?? "";
-  const why = st.pairs === 2 && ans?.why;
-  const notice = !why ? null
-    : why[0] === 1 ? tr("lineInspector.pairsStop", { station: name(why[1]) })
-    : why[0] === 2 ? tr("lineInspector.pairsHop", { from: name(why[1]), to: name(why[1] + 1) })
-    : why[0] === 4 ? tr("lineInspector.pairsUnbuilt")
-    : tr("lineInspector.pairsRoute");
-  return (
-    <>
-      <ul class="rows">
-        <li>
-          <Check checked={!!st.pairs} onChange={(on) => void edit({ op: "linePairs", line: l.num, on })}>{tr("lineInspector.pairs")}</Check>
-        </li>
-      </ul>
-      {notice && <ul class="alerts"><Alert>{notice}</Alert></ul>}
-    </>
-  );
-}
-
+/** Train length follows the shortest platform when the stored car count is zero. */
 function TrainLength({ l, st }: { l: LineInput; st: LineStats }) {
   const [want, setWant] = useState<{ line: string; cars: number } | null>(null);
   const stations = world.value ? stationsById(world.value) : new Map<string, StationInput>();
@@ -1013,7 +983,7 @@ function RailLineInspector({ id }: { id: string }) {
       <Schedule l={l} st={st} now={now} limits={limits} crowd={periods} canAuto={canAuto} copy={<ScheduleCopyButtons l={l} st={st} />} />
       {st.status !== "broken" && <TrainType l={l} st={st} lev={lev} />}
       {st.status !== "broken" && <TrainLength l={l} st={st} />}
-      {st.status !== "broken" && <LinePairs l={l} st={st} />}
+      {st.status !== "broken" && <QuadLineControls l={l} st={st} />}
       {st.status === "running" && held.length > 0 && (
         <ul class="alerts">
           {[...new Set(held.map((h) => h.place))].map((place) => {

@@ -3894,6 +3894,8 @@ function applyInner(op: EditOp): Applied {
       return { r: a.set_line_fast(op.line, op.fast) };
     case "lineOneWay":
       return { r: a.set_line_one_way(op.line, op.oneWay) };
+    case "lineMovePair":
+      return { r: a.move_line_pair(op.line) };
     case "linePairs":
       return { r: a.set_line_pairs(op.line, op.on) };
     case "lineLimit":

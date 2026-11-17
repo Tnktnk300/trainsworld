@@ -186,3 +186,69 @@ fn t3356_stations_beside_are_the_complex_on_the_other_pair() {
     assert!(b.w.net.complex_of(s2[1]).contains(&on));
     assert_eq!(b.w.net.station_beside(s2[1]), None);
 }
+
+#[test]
+fn separate_local_and_rapid_pairs_keep_service_groups_undo_and_saves() {
+    let (mut a, local, stops) = quad_line();
+    let beside: Vec<u32> = [500.0, 2000.0, 3500.0].iter().map(|&x| station(&mut a, x, QUAD_SPACING, "Other pair")).collect();
+    let rapid = a.new_line_id();
+    assert_eq!(a.copy_line(local, rapid, "Rapid".into()), 0);
+    assert_eq!(a.drop_stop(rapid, 1), 0);
+    assert_eq!(a.set_train_counts(rapid, 8, 4, 2), 0);
+    let group = a.line_group(local);
+    assert_eq!(a.move_line_pair(rapid), 0, "{}", a.issues());
+    assert_eq!(a.w.net.line_stops(local), &stops[..]);
+    assert_eq!(a.w.net.line_stops(rapid), &[beside[0], beside[2]]);
+    assert_eq!(trains(&a, rapid), [8, 4, 2]);
+    assert!(!a.line_one_way(rapid));
+    assert_eq!(a.line_pairs(rapid), 0);
+    assert_eq!(a.line_group(rapid), group);
+    assert!(a.w.net.line_path(local).iter().all(|p| !a.w.net.line_path(rapid).contains(p)), "separate capacity on the two pairs");
+    let bytes = save::encode(&a.w.net);
+    let mut restored = TrackApi::new(-73.985, 40.758, true);
+    assert!(restored.load(&bytes));
+    assert_eq!(restored.w.net.line_stops(rapid), &[beside[0], beside[2]]);
+    assert_eq!(restored.line_group(rapid), restored.line_group(local));
+    assert_eq!(a.undo(), 0);
+    assert_eq!(a.w.net.line_stops(rapid), &[stops[0], stops[2]]);
+    assert_eq!(a.redo(), 0);
+    assert_eq!(a.w.net.line_stops(rapid), &[beside[0], beside[2]]);
+    assert_eq!(a.move_line_pair(rapid), 0, "moving back uses the same planner");
+    assert_eq!(a.w.net.line_stops(rapid), &[stops[0], stops[2]]);
+}
+
+#[test]
+fn moving_a_pooled_line_removes_its_twin_in_one_undo() {
+    let (mut a, l, _) = quad_line();
+    for x in [500.0, 2000.0, 3500.0] { station(&mut a, x, QUAD_SPACING, "Other"); }
+    assert_eq!(a.set_auto_headway(l, 300, 600, 0), 0);
+    assert_eq!(a.set_line_pairs(l, true), 0);
+    let t = a.line_twin(l) as u32;
+    let before = a.w.net.line_stops(l).to_vec();
+    let other = a.w.net.line_stops(t).to_vec();
+    let before_fleet = trains(&a, l);
+    assert_eq!(a.move_line_pair(t), 1, "hidden twins cannot be edited as independent services");
+    assert_eq!(a.move_line_pair(l), 0, "{}", a.issues());
+    assert_eq!(a.w.net.line_stops(l), &other);
+    assert_eq!(a.w.net.line_auto[l as usize], Some([300, 600, 0]));
+    assert!(!a.w.net.line_ok(t));
+    assert_eq!(a.line_pairs(l), 0);
+    // Headway fleets are recomputed for the new route; the requested headway is preserved.
+    assert!(trains(&a, l)[0] > 0);
+    assert_eq!(a.undo(), 0);
+    assert_eq!(a.w.net.line_stops(l), &before);
+    assert_eq!(a.line_twin(l), t as i32);
+    assert_eq!(a.line_pairs(l), 1);
+    assert_eq!(a.w.net.line_auto[l as usize], Some([600, 1200, 0]));
+    assert_eq!(trains(&a, l), before_fleet);
+}
+
+#[test]
+fn a_refused_pair_move_leaves_the_network_and_undo_history_alone() {
+    let (mut a, l, _) = quad_line();
+    let before = save::encode(&a.w.net);
+    assert_ne!(a.move_line_pair(l), 0, "no platforms on the adjacent pair");
+    assert_eq!(save::encode(&a.w.net), before);
+    assert_eq!(a.undo(), 0);
+    assert!(!a.w.net.line_ok(l), "the refused move added no undo entry");
+}

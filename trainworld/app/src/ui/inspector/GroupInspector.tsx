@@ -28,6 +28,7 @@ import type { EditOp } from "../../workers/protocol";
 import { locateLine } from "../locate";
 import { tipBullet } from "../tip";
 import { Chip, Icon } from "../widgets";
+import { QuadLineControls } from "./QuadLineControls";
 import { ShortTurnCreator } from "./ShortTurnCreator";
 import { NameEdit } from "./NameEdit";
 import { TwoRows } from "./LineInspector";
@@ -232,6 +233,7 @@ export function GroupInspector({ group }: { group: number }) {
         {ls.map((l) => <div key={l.id}>
           <Chip line={l} />
           <ShortTurnCreator l={l} st={w.lineStats[l.id]} />
+          <QuadLineControls l={l} st={w.lineStats[l.id]} />
         </div>)}
       </div>
       </details>

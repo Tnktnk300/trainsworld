@@ -2677,5 +2677,11 @@
   "shortTurn.note": "Explains existing copyLine zero-fleet behavior.",
   "shortTurn.failed": "Inline error when the atomic copy or shortening is refused.",
   "shortTurn.group": "Open the existing combined line group diagram.",
+  "quadService.title": "Heading for the two adjacent track pairs treated as one corridor, in line/group inspectors.",
+  "quadService.note": "Explains existing bidirectional pairs; no new physical lane order is implied.",
+  "quadService.move": "Move stops and path with twin_plan, disable pooling and set two-way operation in one undo.",
+  "quadService.twoWay": "Existing lineOneWay operation with false; common schedule in both directions.",
+  "quadService.current": "Visible identification of the current pair, using platform names.",
+  "quadService.failed": "Inline failure after a refused pair move.",
   "shortTurn.tools": "Expandable group inspector actions. Keeps the combined diagram visible while individual service tools are closed."
 }

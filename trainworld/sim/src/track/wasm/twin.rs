@@ -28,6 +28,27 @@ impl TrackApi {
         self.run(Op::Line { id: line, data: Some(d) })
     }
 
+    /// Move a visible service to the adjacent pair, with the same service in both directions.
+    /// Reuse the twin planner rather than rerouting from stop coordinates. Turning pooling off
+    /// and moving are one checked edit; twin_ops removes any hidden twin in that same undo.
+    pub fn move_line_pair(&mut self, line: u32) -> u32 {
+        let net = &self.w.net;
+        let Some(mut d) = net.line_data(line).filter(|d| d.bus.is_none() && d.ferry.is_none() && !net.is_twin(line)) else {
+            return self.refuse(Issue::NoSuchLine { line });
+        };
+        let Ok((stops, path)) = net.twin_plan(line) else {
+            return self.refuse(Issue::LinePath { line });
+        };
+        if matches!(d.twin, Twin::Parent { split: true }) {
+            double(&mut d);
+        }
+        d.twin = Twin::None;
+        d.stops = stops;
+        d.path = path;
+        d.one_way = false;
+        self.run(Op::Line { id: line, data: Some(d) })
+    }
+
     /// 0 the switch off, 1 the line runs on both pairs, 2 the switch is on and it runs on one pair
     /// for now (`line_pairs_why`).
     pub fn line_pairs(&self, line: u32) -> u32 {
