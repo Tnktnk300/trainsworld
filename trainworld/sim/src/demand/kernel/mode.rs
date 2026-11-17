@@ -824,7 +824,10 @@ pub fn mode_choice_part(z: &Zones, gr: &Gravity, sz: &Subzones, er: &[f32], walk
                         let s = one / (one + qr * qr * qr);
                         let fr = ((hi - qr) * kf).max(zero).min(one);
                         let fc = ((hi - one / qr) * kf).max(zero).min(one);
-                        one - (one - s * fr) * fc
+                        let share = one - (one - s * fr) * fc;
+                        if p.rail_odds == 1.0 { share } else {
+                            share * F8::splat(p.rail_odds) / (one + share * F8::splat(p.rail_odds - 1.0))
+                        }
                     };
                     let e = (uw - util).exp();
                     let w0 = e / (one + util.neg().exp() + e);

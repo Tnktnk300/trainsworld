@@ -52,6 +52,18 @@ pub const COUNTRY_ASC_RAIL: &[(&str, f32)] = &[];
 pub fn country_asc_rail(country: &str) -> f32 {
     COUNTRY_ASC_RAIL.iter().find(|(c, _)| *c == country).map_or(0.0, |&(_, v)| v)
 }
+/// Conservative first-stage tuning budget, not an empirical national mode-share target. An odds
+/// multiplier k can raise any share by at most (sqrt(k) - 1) / (sqrt(k) + 1).
+/// Five percentage points gives k = ((1 + d) / (1 - d))^2, rather than reusing the old logit +0.5.
+pub const JAPAN_RAIL_MAX_UPLIFT: f32 = 0.05;
+pub const JAPAN_RAIL_ODDS: f32 = {
+    let r = (1.0 + JAPAN_RAIL_MAX_UPLIFT) / (1.0 - JAPAN_RAIL_MAX_UPLIFT);
+    r * r
+};
+pub const COUNTRY_RAIL_ODDS: &[(&str, f32)] = &[("JP", JAPAN_RAIL_ODDS)];
+pub fn country_rail_odds(country: &str) -> f32 {
+    COUNTRY_RAIL_ODDS.iter().find(|(c, _)| *c == country).map_or(1.0, |&(_, v)| v)
+}
 /// US value of time: $20/hour, or 3 perceived minutes per dollar (T-067).
 pub const FARE_MIN_PER_USD: f32 = 3.0;
 
@@ -1097,6 +1109,7 @@ impl DemandApi {
         // the pack's country: the header's own, else the one its everyday block was written for
         let country = h["country"].as_str().or_else(|| h["everyday"]["country"].as_str()).unwrap_or("");
         base.set_extra("country_asc_rail", country_asc_rail(country))?;
+        base.rail_odds = country_rail_odds(country);
         base.park_income = super::kernel::park_income_of(country_gdp_usd(country));
         // T-2214: the pack's land parts (T-2213), if it has two or more
         if let Some(part) = pack::cell_weights(header, bin, "part", city.len())? {

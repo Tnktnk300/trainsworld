@@ -80,6 +80,9 @@ pub struct Params {
     pub beta: f32,
     pub asc_rail: f32,
     pub country_asc_rail: f32,
+    /// Country's multiplier on rail/car odds after the cost-ratio fade. One leaves the original
+    /// calculation bit-identical; zero rail stays zero. Walking and route choice do not use it.
+    pub rail_odds: f32,
     /// Cost damping (T-495, `mode_beta`): past this many perceived minutes of the car's trip the
     /// logit's scale falls as the square root of the car's minutes (walking, and the regional
     /// layer; rail against the car is `ratio_share`'s).
@@ -317,6 +320,7 @@ impl Default for Params {
             beta: 0.10,
             asc_rail: super::api::ASC_RAIL,
             country_asc_rail: 0.0,
+            rail_odds: 1.0,
             damp_min: 60.0,
             // T-918: Anita's fade, so a detour line cannot be farmed (notes/T-918.md)
             ratio_fade_lo: 3.0,
@@ -420,6 +424,7 @@ impl Params {
             "rel_tmax" => self.rel_tmax = v,
             "rel_soft" => self.rel_soft = v,
             "crowd_start" => self.crowd_start = v,
+            "rail_odds" if v > 0.0 => self.rail_odds = v,
             "asc_rail" => self.asc_rail = v + self.country_asc_rail,
             "country_asc_rail" => {
                 self.asc_rail += v - self.country_asc_rail;
@@ -704,7 +709,12 @@ impl Params {
         let k = 1.0 / (self.ratio_fade_hi - self.ratio_fade_lo);
         let fr = ((self.ratio_fade_hi - q) * k).max(0.0).min(1.0);
         let fc = ((self.ratio_fade_hi - 1.0 / q) * k).max(0.0).min(1.0);
-        1.0 - (1.0 - s * fr) * fc
+        self.bias_rail_share(1.0 - (1.0 - s * fr) * fc)
+    }
+    /// Reweight only the rail/car choice, keeping the original hard fades and walk competition.
+    #[inline]
+    pub fn bias_rail_share(&self, share: f32) -> f32 {
+        if self.rail_odds == 1.0 { share } else { share * self.rail_odds / (1.0 + share * (self.rail_odds - 1.0)) }
     }
     /// Perceived minutes of walking the whole trip, `d_km` straight line (round water where the
     /// routes lengthen it), T-558; `NO_WALK` past `WALK_REACH_KM`.

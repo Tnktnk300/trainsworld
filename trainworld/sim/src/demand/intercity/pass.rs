@@ -298,9 +298,14 @@ impl IntercityApi {
         let mut terms: Vec<(u32, u32, f64)> = vec![];
         let mut fares: Vec<f32> = vec![];
         let pc = commute_params();
+        let by_country: Vec<Params> = m.countries.iter().map(|c| Params {
+            rail_odds: super::super::api::country_rail_odds(c), ..pc.clone()
+        }).collect();
+        let country = |h: usize| m.places[m.zones[h].place].country as usize;
         let (mut c_rail, mut c_frac) = (0f64, vec![0f32; self.cpairs.len()]);
         let mut c_cor = vec![0f64; m.n_open_corridors()];
         let pe = commute_params().everyday();
+        let everyday_by_country: Vec<Params> = by_country.iter().map(Params::everyday).collect();
         let (mut e_rail, mut e_walk_lost, mut e_frac) = (0f64, 0f64, vec![0f32; self.epairs.len()]);
         let mut e_used = vec![false; kinds.len()];
 
@@ -549,6 +554,7 @@ impl IntercityApi {
                     if sum <= 0. {
                         continue;
                     }
+                    let pc = &by_country[country(h)];
                     // T-918: rail against the car on the cost ratio, as the local commutes
                     let frac = pc.ratio_share(rail_c, cp.car) as f64;
                     c_frac[ci] = frac as f32;
@@ -611,6 +617,7 @@ impl IntercityApi {
                     if sum <= 0. {
                         continue;
                     }
+                    let pe = &everyday_by_country[country(h)];
                     let util = (pe.mode_beta(ep.car) * (ep.car - rail_c) + pe.asc_rail).clamp(-80., 80.) as f64;
                     let w0 = ep.walk_e as f64 / (util.exp() + 1. + ep.walk_e as f64);
                     let frac = (1. - w0) * pe.ratio_share(rail_c, ep.car) as f64;

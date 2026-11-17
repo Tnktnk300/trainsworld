@@ -2671,3 +2671,32 @@ fn long_trip_pull_by_destination_excess() {
     // a bad rule does not open
     assert!(IntercityApi::new(&with(&pull.replace("[50,150]", "[150,50]"), None)).is_err());
 }
+
+#[test]
+fn japan_cross_pack_outings_use_home_country_without_moving_longer_trips() {
+    let mut packs = world_packs();
+    packs[0] = with_everyday(&packs[0], [1000., 100.], true);
+    let rows = rows_json(&packs);
+    let text = composition(&packs, Some(&rows));
+    let run = |japan: bool| {
+        let mut a = IntercityApi::new(&text).unwrap();
+        if japan {
+            let m = Rc::get_mut(&mut a.m).unwrap();
+            let c = m.places[0].country as usize;
+            m.countries[c] = "JP".into();
+        }
+        world_lines(&mut a, true, true);
+        solve_all(&mut a);
+        (0..PERIODS).map(|q| a.part_summary(q)).collect::<Vec<_>>()
+    };
+    let (base, jp) = (run(false), run(true));
+    let mut gained = 0.0;
+    for (b, j) in base.iter().zip(&jp) {
+        assert_eq!((b[0], b[1]), (j[0], j[1]), "longer-trip totals and rail unchanged");
+        assert_eq!(b[4], j[4], "no outings added");
+        assert!(j[5] >= b[5]);
+        assert!(j[5] - b[5] <= b[4] * super::super::api::JAPAN_RAIL_MAX_UPLIFT as f64 + 1e-3);
+        gained += j[5] - b[5];
+    }
+    assert!(gained > 0.0);
+}

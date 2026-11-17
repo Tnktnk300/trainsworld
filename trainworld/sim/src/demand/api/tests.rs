@@ -1628,3 +1628,35 @@ fn t2365_commute_lengths_of_real_packs() {
             a.z.n, a.gr.total, t / a.gr.total - 1.0, km / t, a.gr.mean_km, a.walk_all, band(0.0, 1.0), band(1.0, 2.0), band(2.0, 5.0), band(5.0, 10.0), band(10.0, 20.0), band(20.0, 1e9));
     }
 }
+
+/// Exercise the real pack hook and SIMD commute solver. Compare each country with its own
+/// unadjusted calculation so that existing income and parking differences are held fixed.
+#[test]
+fn japan_pack_adjustment_is_small_and_non_japanese_solves_are_bit_identical() {
+    let (fixture, xy, n, stops, times, tph, cars) = small();
+    let (h, bin) = pack::write(&fixture.city);
+    for country in ["JP", "US", "GB", "DE", "", "unknown"] {
+        let mut header: serde_json::Value = serde_json::from_str(&h).unwrap();
+        header["country"] = country.into();
+        let h = header.to_string();
+        let mut on = DemandApi::new(&h, &bin).unwrap();
+        let mut off = DemandApi::new(&h, &bin).unwrap();
+        off.base.rail_odds = 1.0;
+        assert_eq!(on.base.asc_rail, off.base.asc_rail);
+        assert_eq!(on.walk_all, off.walk_all);
+        for a in [&mut on, &mut off] {
+            a.set_network(&xy, &n, &stops, &times, &tph, &cars).unwrap();
+            assert!(a.solve(0));
+        }
+        let (s, b) = (on.summary(0), off.summary(0));
+        if country == "JP" {
+            assert!(s[2] > b[2], "JP must affect the rail/car ratio in the SIMD solver");
+            assert!(s[2] - b[2] <= b[1] * JAPAN_RAIL_MAX_UPLIFT as f64 + 1e-3);
+        } else {
+            // summary[4] is elapsed solve time, not a demand result.
+            assert_eq!(&s[..4], &b[..4], "{country}: trip totals");
+            assert_eq!(&s[5..], &b[5..], "{country}: demand diagnostics");
+            assert!(same_bits(&on.board(0), &off.board(0)), "{country}: boardings");
+        }
+    }
+}
