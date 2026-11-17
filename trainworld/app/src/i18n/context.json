@@ -2667,5 +2667,15 @@
   "oneWay.yes": "Button that confirms the question above. reverse: true when the track is being turned around.",
   "oneWay.no": "Button that closes the one-way confirmation and changes nothing.",
   "oneWay.reroutes": "A row under the one-way question, one per line whose route changes. line: the line's name, \"Line 4\".",
-  "issues.oneWayNoWay": "Notice when track cannot be made one way because a line has no other route between its stations. line: the line's name, \"Line 4\"."
+  "issues.oneWayNoWay": "Notice when track cannot be made one way because a line has no other route between its stations. line: the line's name, \"Line 4\".",
+  "shortTurn.open": "Button in line and group inspectors; opens the short-turn station picker.",
+  "shortTurn.station": "Label of the interior-stop selector.",
+  "shortTurn.choose": "Empty option in the turnback station selector.",
+  "shortTurn.keep": "Select which original terminus to retain.",
+  "shortTurn.create": "Commit copy and path-preserving shortening as one undoable edit.",
+  "shortTurn.cancel": "Close the short-turn picker without changing the network.",
+  "shortTurn.note": "Explains existing copyLine zero-fleet behavior.",
+  "shortTurn.failed": "Inline error when the atomic copy or shortening is refused.",
+  "shortTurn.group": "Open the existing combined line group diagram.",
+  "shortTurn.tools": "Expandable group inspector actions. Keeps the combined diagram visible while individual service tools are closed."
 }

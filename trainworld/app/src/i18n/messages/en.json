@@ -2667,5 +2667,15 @@
   "oneWay.yes": "{reverse, select, true {Reverse} other {Run one way}}",
   "oneWay.no": "Cancel",
   "oneWay.reroutes": "{line} takes another way",
-  "issues.oneWayNoWay": "{line} has no other way between its stations."
+  "issues.oneWayNoWay": "{line} has no other way between its stations.",
+  "shortTurn.open": "Create short-turn service",
+  "shortTurn.station": "Turnback station",
+  "shortTurn.choose": "Choose a station",
+  "shortTurn.keep": "Keep this end",
+  "shortTurn.create": "Create service",
+  "shortTurn.cancel": "Cancel",
+  "shortTurn.note": "The copy starts with no trains. Set its schedule after creating it.",
+  "shortTurn.failed": "Could not end the service here. Check the track and turnback facilities.",
+  "shortTurn.group": "View service group",
+  "shortTurn.tools": "Service options"
 }

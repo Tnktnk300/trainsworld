@@ -28,6 +28,7 @@ import type { EditOp } from "../../workers/protocol";
 import { locateLine } from "../locate";
 import { tipBullet } from "../tip";
 import { Chip, Icon } from "../widgets";
+import { ShortTurnCreator } from "./ShortTurnCreator";
 import { NameEdit } from "./NameEdit";
 import { TwoRows } from "./LineInspector";
 import { GroupChartButton } from "./SchedulePanel";
@@ -225,6 +226,15 @@ export function GroupInspector({ group }: { group: number }) {
           {ls.map((l) => <Chip line={l} pick={(x) => void copy(x)} tip={t("groupInspector.copyLine", { name: l.name })} />)}
         </div>
       )}
+      <details class="group-service-tools">
+        <summary>{t("shortTurn.tools")}</summary>
+      <div class="group-services">
+        {ls.map((l) => <div key={l.id}>
+          <Chip line={l} />
+          <ShortTurnCreator l={l} st={w.lineStats[l.id]} />
+        </div>)}
+      </div>
+      </details>
       <div class="group-diagram">
         <div class="group-body" ref={body} style={{ height: lay.height + "px", "--gw": W + "px" }}>
           <svg width={W} height={lay.height} style={{ width: W + "px", height: lay.height + "px" }} onPointerLeave={() => (groupHover.value = null)}>

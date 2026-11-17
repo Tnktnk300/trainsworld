@@ -3673,8 +3673,8 @@ function savedShapes(): Pick<SaveHeader, "shapes"> {
 
 /** T-3319: a new line takes no shape left by a deleted line whose id it reuses; a copy takes its source's. */
 function newLineShape(op: EditOp, line: number) {
-  if (op.op !== "addLine" && op.op !== "addBusLine" && op.op !== "addFerryLine" && op.op !== "copyLine") return;
-  const id = String(line), from = op.op === "copyLine" ? lineShapes.get(String(op.line)) : undefined;
+  if (op.op !== "addLine" && op.op !== "addBusLine" && op.op !== "addFerryLine" && op.op !== "copyLine" && op.op !== "copyShortLine") return;
+  const id = String(line), from = (op.op === "copyLine" || op.op === "copyShortLine") ? lineShapes.get(String(op.line)) : undefined;
   if (from === lineShapes.get(id)) return;
   if (from) lineShapes.set(id, from);
   else lineShapes.delete(id);
@@ -3806,7 +3806,8 @@ function applyInner(op: EditOp): Applied {
       const charge = a.last_charge(), trainCharge = a.last_train_charge();
       return a.set_line_fast(id, true) === 0 ? { r, line: id, charge: charge + a.last_charge(), trainCharge: trainCharge + a.last_train_charge() } : { r, line: id, charge, trainCharge };
     }
-    case "copyLine": {
+    case "copyLine":
+    case "copyShortLine": {
       const id = a.new_line_id();
       const existing = new Set<string>(), symbols = new Set<string>();
       const info = a.lines_info();
@@ -3824,7 +3825,9 @@ function applyInner(op: EditOp): Applied {
         name = base;
         for (let n = 2; existing.has(name); n++) name = `${base} ${n}`;
       }
-      const r = a.copy_line(op.line, id, name);
+      const r = op.op === "copyShortLine"
+        ? a.copy_short_line(op.line, id, op.index, op.keepStart, name)
+        : a.copy_line(op.line, id, name);
       // T-1872: the copy always has a symbol of its own (the source's, or the one it shows, stepped on)
       // T-2791: a lettered name ("Line 1d") gives the symbol too ("1d") when that is free, so bullet and name agree
       const tail = /\d+[A-Za-z]$/.exec(name)?.[0];

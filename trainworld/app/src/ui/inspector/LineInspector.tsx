@@ -40,6 +40,7 @@ import { drawnReversed } from "../../game/northUp";
 import { turnedLine, type TurnRow } from "../../game/turnedLine";
 import { MareyButton } from "./MareyChart";
 import { ScheduleButton } from "./SchedulePanel";
+import { ShortTurnCreator } from "./ShortTurnCreator";
 import { LineProfile } from "./LineProfile";
 import { LineTopSpeed } from "./LineTopSpeed";
 import type { EditOp } from "../../workers/protocol";
@@ -1006,6 +1007,7 @@ function RailLineInspector({ id }: { id: string }) {
         <button class="btn text" onClick={() => void copy()} disabled={copying}>{tr("busInspector.copy")}</button>
         <button class="btn text danger" onClick={remove}>{tr("busInspector.deleteYes")}</button>
       </div>
+      <ShortTurnCreator key={l.id} l={l} st={st} />
       {editingStops && stopsBlock}
 
       <Schedule l={l} st={st} now={now} limits={limits} crowd={periods} canAuto={canAuto} copy={<ScheduleCopyButtons l={l} st={st} />} />

@@ -1208,3 +1208,17 @@ title is "Trip" with no line under it naming the ends: the map marks them [T-125
   and the route's share; a walk its distance and minutes; a station what the route does there.
 
 - The platform stepper reads in cars and is called station length (T-2785).
+
+### Short-turn services (Japan rebalance)
+
+A rail line's **Create short-turn service** opens an interior-stop picker and a choice of which
+original terminal to keep. **Create service** copies the line and cuts its stored path at that
+stop, with the same cut as `end_line_at`; it never reroutes onto an express pair. Copy, cut and
+group membership are one checked edit and one undo. The copy starts with no trains, like Copy
+line, and needs its schedule set. The source's service is unchanged. Invalid routes leave no
+partial copy. Loops, buses and ferries do not offer this shortcut; `turn_end` is the existing
+balloon-loop operation and is not needed for an ordinary short-turn service.
+
+The existing group diagram opens with every stop named. Full-length, short-turn and skip-stop
+services remain ordinary lines in one group, each with its existing stop/pass marks and schedule.
+Each group member also offers the shortcut; its bullet opens that service's inspector.

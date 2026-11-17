@@ -138,7 +138,31 @@ impl TrackApi {
     /// A copy has the source's stops and settings but no trains until the player sets them
     /// (T-1161): headways stay headways, at none.
     pub fn copy_line(&mut self, source: u32, id: u32, name: String) -> u32 {
-        let Some(mut d) = self.w.net.line_data(source) else { return self.refuse(Issue::NoSuchLine { line: source }) };
+        let Some(d) = self.w.net.line_data(source) else { return self.refuse(Issue::NoSuchLine { line: source }) };
+        self.copy_line_data(source, id, d, name)
+    }
+    /// Copy and shorten as one edit: a failed turnback leaves no copy or group behind. Unlike
+    /// `turn_end` (a balloon loop), this is an ordinary two-way line ending at an interior stop.
+    pub fn copy_short_line(&mut self, source: u32, id: u32, index: u32, keep_start: bool, name: String) -> u32 {
+        let Some(mut d) = self.w.net.line_data(source).filter(|d| d.bus.is_none() && d.ferry.is_none() && !closed(&d.stops) && !self.w.net.is_twin(source)) else {
+            return self.refuse(Issue::LinePath { line: source });
+        };
+        let (i, n) = (index as usize, d.stops.len());
+        if n < 3 || i == 0 || i >= n - 1 {
+            return self.refuse(Issue::LinePath { line: source });
+        }
+        let (lo, hi) = if keep_start { (i + 1, n - 1) } else { (0, i - 1) };
+        // The same path-preserving cut as end_line_at/drop_stops; never reroute onto express track.
+        let Some((stops, path)) = dropped(&self.w.net, &d, lo, hi) else {
+            return self.refuse(Issue::LinePath { line: source });
+        };
+        d.stops = stops;
+        d.path = path;
+        d.one_way = false;
+        self.copy_line_data(source, id, d, name)
+    }
+
+    fn copy_line_data(&mut self, source: u32, id: u32, mut d: LineData, name: String) -> u32 {
         d.name = name;
         d.day = 0;
         // a bus line's copy is a planned route, paid for on Construct (T-1464)
