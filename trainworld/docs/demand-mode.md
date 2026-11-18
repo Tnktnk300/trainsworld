@@ -40,10 +40,18 @@ between regions) keeps its damped logit (docs/regional.md 5.1). The ceiling test
 walking, so within walking's reach a station pair whose real minutes (walks or drive, waits, rides;
 no fare, crowding or weights) are more than walking the whole way's is no option, and a trip with
 none left has no train. A trip with a quicker pair keeps its whole share; refused pairs carrying
-at most 1% of a trip's station-pair weight are let be (T-2307). **No rail propensity**:
-`asc_rail` is 0 in every country and does not enter the ratio, so rail and the car are judged on
-time and money alone (`everyday_asc_rail` and `api::COUNTRY_ASC_RAIL` remain, at 0 and empty,
-moving only the walking share). The game aims at sensible, with a clear effect from building a
+at most 1% of a trip's station-pair weight are let be (T-2307). **Country adjustment** (Japan rebalance): `asc_rail` and `everyday_asc_rail` stay 0 and
+`api::COUNTRY_ASC_RAIL` stays empty. That old logit hook affects walking competition, not the
+rail/car ratio. Japan instead multiplies the ratio's resulting rail/car odds by
+`api::JAPAN_RAIL_ODDS`, derived from `JAPAN_RAIL_MAX_UPLIFT` (0.05):
+`k = ((1+d)/(1-d))^2`, `s' = k*s/(1+(k-1)*s)`. This caps the increase at five percentage
+points for any original share (equal costs: 50% to about 55%). It is a conservative gameplay
+budget pending real-network comparisons, not a fit to a measured Japanese mode share.
+The cost-ratio hard fades, walking competition, access bounds, fares and capacity stay as before;
+no extra trips are generated. It applies to Japan's local and cross-pack commutes and everyday
+trips by home country, without bonuses by service name or stopping pattern. Longer intercity
+trips keep their existing rule and `pipeline/longhaul.json` is unchanged. Other countries take
+an exact identity branch. `Params::rail_odds` (`set_extra("rail_odds", 1)`) disables it for comparisons. The game aims at sensible, with a clear effect from building a
 line, and the real cities are loose checks (T-636, notes/T-636.md).
 **Walking's share** (T-558, below) still comes from a logit among rail, walking and the car at
 `beta` 0.10 a perceived minute, with **cost damping** (T-495, `Params::mode_beta`): past 60

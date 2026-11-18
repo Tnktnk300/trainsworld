@@ -189,7 +189,7 @@ export function startEditNote() {
     const op = lastEdit;
     pending!.estimable &&= !!op && ESTIMABLE.has(op.op);
     // the line it is about (a copy's source is not: the copy is new)
-    if (op && "line" in op && typeof op.line === "number" && op.op !== "copyLine") pending!.lines.add(op.line);
+    if (op && "line" in op && typeof op.line === "number" && op.op !== "copyLine" && op.op !== "copyShortLine") pending!.lines.add(op.line);
     later(NO_SOLVE_MS);
   });
 

@@ -2665,5 +2665,21 @@
   "sideSwitch.switch": "切り替える",
   "sideSwitch.toFix": "要修正",
   "sideSwitch.toFixCount": "{count, plural, other {切り替え後に直す場所が#か所あります}}",
-  "sideSwitch.unusable": "どの列車も使えない一方通行の線路"
+  "sideSwitch.unusable": "どの列車も使えない一方通行の線路",
+  "shortTurn.open": "途中折返し系統を作る",
+  "shortTurn.station": "折返し駅",
+  "shortTurn.choose": "駅を選択",
+  "shortTurn.keep": "残す起終点",
+  "shortTurn.create": "系統を作成",
+  "shortTurn.cancel": "キャンセル",
+  "shortTurn.note": "複製した系統は列車数0で作成されます。作成後にダイヤを設定してください。",
+  "shortTurn.failed": "ここで系統を折り返せません。線路と折返し設備を確認してください。",
+  "shortTurn.group": "系統グループを表示",
+  "quadService.title": "複々線の運行",
+  "quadService.note": "緩行・快速を別々のペアに配置できます。各ペアは上下両方向で使用し、停車駅はグループ図で比較できます。",
+  "quadService.move": "隣のペアへ移動（上下とも）",
+  "quadService.twoWay": "上下とも運行",
+  "quadService.current": "現在のペアの停車駅：{stations}",
+  "quadService.failed": "系統を移動できません。隣のペアのホームと復路を確認してください。",
+  "shortTurn.tools": "系統ごとの操作"
 }

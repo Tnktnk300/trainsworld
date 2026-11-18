@@ -1632,3 +1632,36 @@ fn leaf_stations_leave_every_strategy_as_it_was() {
     }
     super::search::CHECK_PLAIN.with(|c| c.set(false));
 }
+
+#[test]
+fn japan_odds_are_bounded_and_other_countries_keep_the_original_curve() {
+    use super::super::api::{country_rail_odds, JAPAN_RAIL_MAX_UPLIFT};
+    let base = Params::default();
+    let jp = Params { rail_odds: country_rail_odds("JP"), ..base.clone() };
+    let mut largest = 0.0f32;
+    for i in 0..=10000 {
+        let s = i as f32 / 10000.0;
+        let uplift = jp.bias_rail_share(s) - s;
+        assert!(uplift >= -1e-7 && uplift <= JAPAN_RAIL_MAX_UPLIFT + 1e-6);
+        largest = largest.max(uplift);
+    }
+    assert!((largest - JAPAN_RAIL_MAX_UPLIFT).abs() < 1e-5);
+    for car in [10.0, 30.0, 60.0, 240.0] {
+        for q in [0.1, 0.3, 0.8, 1.0, 1.5, 3.5, 4.0, 8.0] {
+            assert!(jp.ratio_share(q * car, car) >= base.ratio_share(q * car, car));
+            for country in ["US", "GB", "DE", "FR", "KR", "", "unknown"] {
+                let p = Params { rail_odds: country_rail_odds(country), ..base.clone() };
+                assert_eq!(p.ratio_share(q * car, car).to_bits(), base.ratio_share(q * car, car).to_bits());
+            }
+        }
+        assert_eq!(jp.ratio_share(4.0 * car, car), 0.0);
+        assert_eq!(jp.ratio_share(0.2 * car, car), 1.0);
+        assert!(jp.ratio_share(2.0 * car, car) < 0.14, "a slow local is still unattractive");
+    }
+    assert_eq!(jp.asc_rail, 0.0);
+    assert_eq!(jp.everyday().rail_odds, jp.rail_odds);
+    let mut off = jp.clone();
+    off.set_extra("rail_odds", 1.0).unwrap();
+    assert_eq!(off.ratio_share(40.0, 30.0), base.ratio_share(40.0, 30.0));
+    assert!(off.set_extra("rail_odds", 0.0).is_err());
+}

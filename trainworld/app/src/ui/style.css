@@ -1975,3 +1975,11 @@ html.ui-hidden .ui-hint.on { display: block; }
 .new-version-note { border-color: var(--accent); }
 .new-version-note .dsn-row .btn { border-color: var(--accent); color: var(--text); }
 .stop-mark.hot { box-shadow: 0 0 0 3px var(--map-casing, #fff), 0 0 0 5px var(--c), 0 0 12px 6px var(--c); z-index: 4; }
+
+/* The existing inspector controls, kept compact when repeated in a service group. */
+.short-turn { margin: 6px 0; }
+.short-turn .callout label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.short-turn select { min-width: 0; max-width: 100%; font: inherit; color: var(--text); background: var(--bg); }
+.group-services > div { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.quad-service { margin: 8px 0; }
+.quad-service fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }

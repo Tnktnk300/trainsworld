@@ -136,6 +136,8 @@ export type EditOp =
    * when more than half its route's km is high-speed track, ordinary otherwise */
   | { op: "addLine"; stops: NodeId[]; name: string; colour: string; autoFast?: boolean }
   | { op: "copyLine"; line: number; name?: string }
+  /** Path-preserving copy with an interior terminus, grouped with its source, one undo. */
+  | { op: "copyShortLine"; line: number; index: number; keepStart: boolean; name?: string }
   | { op: "setStops"; line: number; stops: NodeId[]; autoFast?: boolean }
   /** T-648: the station put in where the line tool's search fits it best (`TrackApi::insert_stop`),
    * then set as `setStops`; refused with "InsertStop" when no track joins it in */
@@ -163,6 +165,8 @@ export type EditOp =
   | { op: "lineOneWay"; line: number; oneWay: boolean }
   /** T-3333: run the line's trains on both pairs of quad track, or on one */
   | { op: "linePairs"; line: number; on: boolean }
+  /** Adjacent quad pair, ordinary service in both directions; existing twin planner/save model. */
+  | { op: "lineMovePair"; line: number }
   /** T-2987: a rail line's speed limit in km/h, 0 for none */
   | { op: "lineLimit"; line: number; kmh: number }
   /** T-1791: put lines in a group (a line's group number, "new" for a fresh one, 0 for none), or name one ("" for its oldest line's name); one undoable edit, no service change */

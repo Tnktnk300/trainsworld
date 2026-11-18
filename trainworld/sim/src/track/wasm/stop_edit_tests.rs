@@ -186,3 +186,46 @@ fn a_loop_that_only_goes_out_and_back_ends_where_it_turns() {
     assert_eq!(api.set_stops(id, &[a, m, k, m, a]), 0, "{}", api.issues());
     assert_eq!((api.w.net.line_stops(id), api.line_loop(id)), (&[a, m, k, m, a][..], 2));
 }
+
+#[test]
+fn short_turn_copy_keeps_original_path_and_is_one_undo() {
+    let (w, [s0, s1, t, _, m, _, _, _]) = y_fixture();
+    let mut a = api();
+    a.w = w;
+    let l = a.new_line_id();
+    assert_eq!(a.set_line_with_trains(l, &[s0, s1, t, m], 8, 4, 2, 30., 180., 4, 0xff0000, "Main".into()), 0);
+    let source = a.w.net.line_data(l).unwrap();
+    let copy = a.new_line_id();
+    assert_eq!(a.copy_short_line(l, copy, 2, true, "Short".into()), 0, "{}", a.issues());
+    assert_eq!(a.w.net.line_stops(copy), &[s0, s1, t]);
+    assert_eq!(a.w.net.line_stops(l), &source.stops);
+    assert_eq!(a.w.net.line_path(l), &source.path);
+    assert!(source.path.starts_with(a.w.net.line_path(copy)));
+    assert_eq!(a.w.net.line_trains[l as usize], Some([8, 4, 2]));
+    assert_eq!(a.w.net.line_trains[copy as usize], Some([0; 3]));
+    assert!(!a.line_one_way(copy));
+    assert!(a.line_group(l) != 0 && a.line_group(l) == a.line_group(copy));
+    let bytes = save::encode(&a.w.net);
+    let mut restored = api();
+    assert!(restored.load(&bytes));
+    assert_eq!(restored.w.net.line_stops(copy), &[s0, s1, t]);
+    assert_eq!(restored.line_group(l), restored.line_group(copy));
+    assert_eq!(a.undo(), 0);
+    assert!(!a.w.net.line_ok(copy));
+    assert_eq!(a.line_group(l), 0, "one undo also removes the new group");
+    assert_eq!(a.redo(), 0);
+    assert_eq!(a.w.net.line_stops(copy), &[s0, s1, t]);
+    let group = a.line_group(l);
+    assert_eq!(a.set_line_group_name(group, "Corridor".into()), 0);
+    let tail = a.new_line_id();
+    assert_eq!(a.copy_short_line(l, tail, 1, false, "Tail".into()), 0);
+    assert_eq!(a.w.net.line_stops(tail), &[s1, t, m]);
+    assert_eq!(a.line_group(tail), group);
+    assert_eq!(a.line_group_name(tail), "Corridor");
+    let invalid = a.new_line_id();
+    let before = save::encode(&a.w.net);
+    for index in [0, 3, 99, u32::MAX] {
+        assert_ne!(a.copy_short_line(l, invalid, index, true, "Bad".into()), 0);
+        assert_eq!(save::encode(&a.w.net), before, "refusal is atomic");
+    }
+}

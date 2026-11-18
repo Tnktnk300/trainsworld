@@ -500,17 +500,9 @@ notes/T-420.md has the tables.
   driving) differ by country. Check: rail, air and car shares on a few corridors per country
   (MLIT's Inter-Regional Travel Survey, Eurostat, NEC FUTURE) at two lengths, so the slope as well
   as the level is seen.
-- **Rail propensity** (T-636, docs/demand-mode.md 4.3). None: `asc_rail` is 0 everywhere, so rail
-  and the car are judged on time and money alone, by the ratio curve; Anita chose a sensible and
-  clear model over fitting the real cities (DECISIONS-to-2026-10-19 2026-10-17). A rail constant for the
-  everyday layer exists as a parameter at 0 (`everyday_asc_rail`), and the country table
-  (`api::COUNTRY_ASC_RAIL`) is empty. The real cities' station entries are the loose check
-  (notes/T-636.md). Why it may not carry over: with no constant, habit, income, bus competition and what the car is
-  good for show up only where time and money show them; countries where rail is the norm beyond
-  its minutes (Japan, Switzerland) will look low, and where bus riders crowd the train (Seoul,
-  London) high. Check: a new country's station entries against the model's level, and its census
-  rail share by area where it has one; a country constant only where a real network's counts show
-  a gap the worldwide value cannot close.
+- **Rail propensity**: the old logit constants stay zero. Japan has a bounded rail/car odds
+  adjustment, with a maximum five percentage point uplift; other countries keep the original
+  calculation. See [demand-mode.md](demand-mode.md) 4.3 for the derivation, scope and tuning hook.
 
 ### Driving and parking
 

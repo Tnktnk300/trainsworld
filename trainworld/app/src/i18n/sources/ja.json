@@ -2665,5 +2665,21 @@
   "sideSwitch.switch": "Switch side",
   "sideSwitch.toFix": "To fix",
   "sideSwitch.toFixCount": "{count, plural, one {# place to fix after the switch} other {# places to fix after the switch}}",
-  "sideSwitch.unusable": "One-way track no train can use"
+  "sideSwitch.unusable": "One-way track no train can use",
+  "shortTurn.open": "Create short-turn service",
+  "shortTurn.station": "Turnback station",
+  "shortTurn.choose": "Choose a station",
+  "shortTurn.keep": "Keep this end",
+  "shortTurn.create": "Create service",
+  "shortTurn.cancel": "Cancel",
+  "shortTurn.note": "The copy starts with no trains. Set its schedule after creating it.",
+  "shortTurn.failed": "Could not end the service here. Check the track and turnback facilities.",
+  "shortTurn.group": "View service group",
+  "quadService.title": "Four-track operation",
+  "quadService.note": "Keep local and rapid services on separate pairs. Each pair carries both directions; the group diagram shows their stops together.",
+  "quadService.move": "Move to adjacent pair, both directions",
+  "quadService.twoWay": "Run both directions",
+  "quadService.current": "Stops on this pair: {stations}",
+  "quadService.failed": "Could not move this service. Check the platforms and return route on the adjacent pair.",
+  "shortTurn.tools": "Service options"
 }
